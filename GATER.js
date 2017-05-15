@@ -29,7 +29,7 @@
 
 
 
-********************************************************FMask Code for the years 1995 - 2016 Landsat images********************************************************
+//********************************************************FMask Code for the years 1995 - 2016 Landsat images********************************************************
 
 //Collections for the Landsat 5 TM, 7 ETM+, and 8 OLI are located in the 'imports' section of the GEE code editor.
 
@@ -146,7 +146,7 @@ Export.image.toCloudStorage({
 });
 
 
-************************************************Cloud Mask for Sentinel-2********************************************************
+//************************************************Cloud Mask for Sentinel-2********************************************************
 //import park boundary from fusion table (shapeFiles)
 var parkBoundary = ee.FeatureCollection('ft:1KAYShQzYibOCQkxscbvvdNEq0JINOcYLy9wOLIF1','geometry');
 
@@ -183,7 +183,7 @@ Export.image.toCloudStorage({
 
 
 
-********************************************************Classification Codes - *All Classification codes use the following standard 
+//********************************************************Classification Codes - *All Classification codes use the following standard 
 imports, geometry features, and assests. The masked image is collected from the assets that was exported from the FMask code show above. 
 Training samples are modified for each year, but the code is the same.*********************************************************
 
@@ -209,7 +209,7 @@ var classes = [
 print('Class Descriptions', classes);
 
 
-********************************************************Year 1995********************************************************
+//********************************************************Year 1995********************************************************
 
 //reduce cloud cover and clip to region
 var Bands = ['B1_median', 'B2_median', 'B3_median', 'B4_median', 'B5_median', 'B7_median']
@@ -301,7 +301,7 @@ print ('Total Area (ha)', reducerBuffer);
 
 
 
-********************************************************Year 2000********************************************************
+//********************************************************Year 2000********************************************************
 
 //add a random number column to geometry imports, use seed (1, 2, and 3)
 var newfc2 = newfc.randomColumn('random', 2);
@@ -389,7 +389,7 @@ var reducerBuffer = area.reduceRegion({
 print ('Total Area (ha)', reducerBuffer);
 
 
-********************************************************Year 2005********************************************************
+//********************************************************Year 2005********************************************************
 
 //add a random number column to geometry imports, use seed (1, 2, and 3)
 var newfc2 = newfc.randomColumn('random', 2);
@@ -477,7 +477,7 @@ print ('Total Area (ha)', reducerBuffer);
 
 
 
-********************************************************Year 2010********************************************************
+//********************************************************Year 2010********************************************************
 
 //add a random number column to geometry imports, use seed (1, 2, and 3)
 var newfc2 = newfc.randomColumn('random', 2);
@@ -565,7 +565,7 @@ print ('Total Area (ha)', reducerBuffer);
 
 
 
-********************************************************Year 2015********************************************************
+//********************************************************Year 2015********************************************************
 
 //add a random number column to geometry imports, use seed (1, 2, and 3)
 var newfc2 = newfc.randomColumn('random', 2);
@@ -653,7 +653,7 @@ print ('Total Area (ha)', reducerBuffer);
 
 
 
-********************************************************Year 2016********************************************************
+//********************************************************Year 2016********************************************************
 
 //add a random number column to geometry imports, use seed (1, 2, and 3)
 var newfc2 = newfc.randomColumn('random', 2);
