@@ -3066,17 +3066,17 @@ Export.image.toDrive({
 var area = classified.eq([0, 1, 2, 3, 4, 5]).multiply(ee.Image.pixelArea()).divide(10000);
 var reducer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Sample,
   scale: 30,
-  geometry: GRTS_Sample
+  maxPixels: 50000000,
 });
 print ('Sampled Grid Area (ha)', reducer);
-/*
+
 //Calculate the area within the mangrove buffer region
 var reducerBuffer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Boundary,
   scale: 30,
-  geometry: GRTS_Boundary
+  maxPixels: 50000000,
 });
-print ('Total Area (ha)', reducerBuffer);*/
+print ('Total Area (ha)', reducerBuffer);
