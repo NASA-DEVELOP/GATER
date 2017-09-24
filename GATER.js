@@ -37,34 +37,36 @@ var landsat5 = ee.ImageCollection("LANDSAT/LT5_L1T_TOA_FMASK"),
 var landsat7 = ee.ImageCollection("LANDSAT/LE7_L1T_TOA_FMASK"),
 var landsat8 = ee.ImageCollection("LANDSAT/LC8_L1T_TOA_FMASK");
 
-//import park boundary and GRTS random sampling gridfrom fusion table (shapeFiles)
+//Import Everglades National Park boundary (or another shapefile of your choice). This will be used to clip the Landsat imagery collections to your area of interest.
 var parkBoundary = ee.FeatureCollection('ft:1KAYShQzYibOCQkxscbvvdNEq0JINOcYLy9wOLIF1','geometry');
 
-//create a function that will apply fmask to your image
+//Create a function that will apply Fmask to your image.
 function applyMask(image) {
- return image.updateMask(image.select('fmask').lt(2));} //This selects pixels in the fmask band that are less than 2 (meaning cloud-free)
+ return image.updateMask(image.select('fmask').lt(2));} //This selects pixels in the Fmask band that are less than 2 (meaning cloud-free)
 
-//reduce a collection to an image --YEAR 1995
+//Cloud filtering for Year 1995 starts here 
+//Reduce a collection to a single image (YEAR 1995). We exclusively used the dry season for our research (January 1 - May 31).
 var collection95 = ee.ImageCollection(landsat5)
     .filterDate('1995-01-01', '1995-05-30')               //define time frame
-    .map(applyMask);                                      //apply mask
+    .map(applyMask);                                      //apply mask function for cloud filtering
 
-//reduce earlier year to add to collection
+//Reduce previous year to add to image collection. In very cloudy regions, there may be no available pixels from your filterDate with data, so you can fill in with data from the previous year.
 var fill94 = ee.ImageCollection(landsat5)
     .filterDate('1994-01-01', '1994-05-30')               //define time frame
-    //apply mask
-    .map(applyMask); 
-//combine the two collections
+    .map(applyMask); 									  //apply mask
+
+//Combine the two collections (years 1995 and 1994)
 var combine95 = ee.ImageCollection(fill94.merge(collection95));
 
-//reduce cloud cover and clip to region
+//Reduce image collection to a single image by applying a median function and clip to study region.
 var merged95 = combine95.reduce(ee.Reducer.median())
       .clip(parkBoundary);
-// Export the image to Cloud Storage as an Asset.
-Export.image.toCloudStorage({
+
+//Export the image as an Asset.
+Export.image.toAsset({
   image: merged95,
-  description: 'Year 1995',
-  fileNamePrefix: '1995',
+  description: 'Landsat1995',
+  assetId: 'Landsat1995',
   scale: 30,
   region: parkBoundary
 });
