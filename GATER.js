@@ -45,7 +45,7 @@ function applyMask(image) {
  return image.updateMask(image.select('fmask').lt(2));} //This selects pixels in the Fmask band that are less than 2 (meaning cloud-free)
 
 //Cloud filtering for Year 1995 starts here 
-//Reduce a collection to a single image (YEAR 1995). We exclusively used the dry season for our research (January 1 - May 31).
+//Filter collection to specific date range and area of interest (YEAR 1995). We exclusively used the dry season for our research (January 1 - May 31).
 var collection95 = ee.ImageCollection(landsat5)
     .filterDate('1995-01-01', '1995-05-30')               //define time frame
     .map(applyMask);                                      //apply mask function for cloud filtering
@@ -71,21 +71,23 @@ Export.image.toAsset({
   region: parkBoundary
 });
 
-//reduce a collection to an image--YEAR 2000
+//Cloud filtering for Year 2000 starts here
+//Filter collection to specific date range and area of interest (YEAR 2000). We exclusively used the dry season for our research (January 1 - May 31).
 var collection00 = ee.ImageCollection(landsat7)
     .filterDate('2000-01-01', '2000-05-30')               //define time frame
     .map(applyMask);                                      //apply mask
 
+//As all the pixels had cloud-free data in the filtered image collection, we did not include data from the previous year. 
 
-//reduce cloud cover and clip to region
+//Reduce image collection to single image by applying a median function and clip to study region.
 var merged00 = collection00.reduce(ee.Reducer.median())
       .clip(parkBoundary);
 
-// Export the image to Cloud Storage as an Asset.
-Export.image.toCloudStorage({
+// Export the image as an Asset.
+Export.image.toAsset({
   image: merged00,
-  description: 'Year 2000',
-  fileNamePrefix: '2000',
+  description: 'Landsat2000',
+  assetId: 'Landsat2000',
   scale: 30,
   region: parkBoundary
 });
