@@ -31,7 +31,11 @@
 
 //********************************************************FMask Code for the years 1995 - 2016 Landsat images********************************************************
 
-//Collections for the Landsat 5 TM, 7 ETM+, and 8 OLI are located in the 'imports' section of the GEE code editor.
+//Import Landsat 5 TM, Landsat 7 ETM+, and Landsat 8 OLI collections by either searching for each collection with "Surface Reflectance TOA with Fmask" in the searchbar, or using the variables below.
+//Rename each image collection "landsat5", "landsat7", and "landsat8" respectively.
+var landsat5 = ee.ImageCollection("LANDSAT/LT5_L1T_TOA_FMASK"),
+var landsat7 = ee.ImageCollection("LANDSAT/LE7_L1T_TOA_FMASK"),
+var landsat8 = ee.ImageCollection("LANDSAT/LC8_L1T_TOA_FMASK");
 
 //import park boundary and GRTS random sampling gridfrom fusion table (shapeFiles)
 var parkBoundary = ee.FeatureCollection('ft:1KAYShQzYibOCQkxscbvvdNEq0JINOcYLy9wOLIF1','geometry');
@@ -74,6 +78,7 @@ var collection00 = ee.ImageCollection(landsat7)
 //reduce cloud cover and clip to region
 var merged00 = collection00.reduce(ee.Reducer.median())
       .clip(parkBoundary);
+
 // Export the image to Cloud Storage as an Asset.
 Export.image.toCloudStorage({
   image: merged00,
