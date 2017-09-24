@@ -92,24 +92,26 @@ Export.image.toAsset({
   region: parkBoundary
 });
 
-//reduce a collection to an image---YEAR2005
+//Cloud filtering for Year 2005 starts here
+//Filter collection to specific date range and area of interest (YEAR 2005)
 var collection05 = ee.ImageCollection(landsat5)
     .filterDate('2005-01-01', '2005-05-30')               //define time frame
     .map(applyMask);                                      //apply mask
 
-//reduce cloud cover and clip to region
+//As all the pixels had data in the image collection, we did not include data from the previous year. 
+
+//Reduce image collection to single image by applying a median function and clip to study region.
 var merged05 = collection05.reduce(ee.Reducer.median())
       .clip(parkBoundary);
 
-// Export the image to Cloud Storage.
-Export.image.toCloudStorage({
-  image: merged05,
-  description: 'Year 2005',
-  fileNamePrefix: '2005',
+// Export the image as an Asset.
+Export.image.toAsset({
+  image: merged00,
+  description: 'Landsat2005',
+  assetId: 'Landsat2005',
   scale: 30,
   region: parkBoundary
 });
-
 
 //reduce a collection to an image---YEAR2010
 var collection10 = ee.ImageCollection(landsat7)
