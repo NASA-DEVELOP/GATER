@@ -113,28 +113,30 @@ Export.image.toAsset({
   region: parkBoundary
 });
 
-//reduce a collection to an image---YEAR2010
+//Cloud filtering for Year 2010 starts here
+//Filter collection to specific date range and area of interest (YEAR 2010)
 var collection10 = ee.ImageCollection(landsat7)
     .filterDate('2010-01-01', '2010-05-30')               //define time frame
     .map(applyMask);                                      //apply mask
 
+//Reduce earlier year to add to collection. In very cloudy regions, there may be no available pixels from your filterDate with data, so you can fill in with data from the previous year.
 var fill10 = ee.ImageCollection(landsat7)
     .filterDate('2009-01-01', '2009-05-30')               //define time frame
-    //.filterBounds(newfc)                                  //classification properties
-    .map(applyMask); 
+    .map(applyMask); 									  //apply mask
     
+//Combine the two image collections (years 2010 and 2009)
 var combine10 = ee.ImageCollection(fill10.merge(collection10));
 
-//reduce cloud cover and clip to region
+//Reduce image collection to single image by applying median function and clip to study region.
 var merged10 = combine.reduce(ee.Reducer.median())
       .clip(parkBoundary)
-      .select(['B7_median','B5_median', 'B4_median', 'B3_median', 'B2_median', 'B1_median']);
+      .select(['B7_median','B5_median', 'B4_median', 'B3_median', 'B2_median', 'B1_median']); //selects only bands with same data formats
       
-// Export the image to Cloud Storage as an Asset.
-Export.image.toCloudStorage({
+//Export the image as an Asset.
+Export.image.toAsset({
   image: merged10,
-  description: 'Year 2010',
-  fileNamePrefix: '2010',
+  description: 'Landsat2010',
+  assetId: 'Landsat2010',
   scale: 30,
   region: parkBoundary
 });
