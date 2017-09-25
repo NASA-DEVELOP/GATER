@@ -348,7 +348,7 @@ var classifier = ee.Classifier.randomForest(100).train({
  features: training2000, 
   classProperty: 'landcover'});
 
-//Apply classifier to "masked" image for year 1995
+//Apply classifier to "masked" image for year 2000
 var classified = masked.classify(classifier);
 
 //To validate, compare 10% of points reserved for testing to the classification product "classified" in errorMatrix
@@ -415,48 +415,48 @@ print ('Total Area (ha)', reducerBuffer); //print area to console
 
 
 //********************************************************Year 2005********************************************************
-
-//add a random number column to geometry imports, use seed (1, 2, and 3)
-var newfc2 = newfc.randomColumn('random', 2);
-
+//Import the 'Landsat2005' image from your Assets and call it "imageMasked"
 //Call the masked image in the Assets
 var masked = imageMasked;
 
-//define your classification samples to incl. newfc2 and the properties to be considered
+//Add a random number column to geometry imports, use seed (1, 2, and 3). This will be used to separate data into testing and training points.
+var newfc2 = newfc.randomColumn('random', 2);
+
+//Define your classification samples to include newfc2 and the properties to be considered (landcover class type and the random number column)
 var samples = masked.sampleRegions({
   collection: newfc2,   
   properties: ['landcover', 'random'], 
   scale: 30 });
 
-//split training points (90% and 10%)  
+//Split "samples" into training and testing points (90% for training and 10% for testing)
 var training2005 = samples.filterMetadata('random', 'less_than', 0.9);
 var testing2005 = samples.filterMetadata('random', 'not_less_than', 0.9);
 
-//only use the 90% for classification
+//Only use the 90% of points for training classifier
 var classifier = ee.Classifier.randomForest(100).train({
  features: training2005, 
   classProperty: 'landcover'});
 
-//apply classifier
+//Apply classifier to "masked" image for year 2005
 var classified = masked.classify(classifier);
 
-//to validate, compare 10% testing points to the classification product in errorMatrix
+//To validate, compare 10% of points reserved for testing to the classification product "classified" in errorMatrix
 var validation2005 = testing2005.classify(classifier);                                     
 var errorMatrix2005 = validation2005.errorMatrix('landcover', 'classification');           
 print('Error Matrix:', errorMatrix2005);
 print('Overall Accuracy:', errorMatrix2005.accuracy());
 print('Kappa Coefficient 2005: ', errorMatrix2005.kappa());
 
-
-//set location and zoom level
+//The following shows instructions on how to view the classification image
+//Set location and zoom level
 Map.setCenter(-80.67012, 25.15795, 10); 
 
-
 //Display either satellite image OR classified layer to reduce loading time. Can also add the GRTS sample grid and vegetation map for creating training points
-//image_masked is used to classify, classified is the image produced from the training points
+//"imageMasked" is used to classify, "classified" is the image produced from the training points
 //Add satellite image map
 Map.addLayer(masked, {bands: ['B5_median', 'B4_median', 'B3_median'], max: 0.3}, 'masked image');
 
+//Creates variable "palette" that lists color selections for landcover types
 var palette = ['000000', //Water - Black
                '4d9221', //Mangrove Forest - dark green
                '61380B', //Freshwater Marsh - brown
@@ -464,86 +464,87 @@ var palette = ['000000', //Water - Black
                'CC2EFA', //Shrub/Scrub - Magenta
               ];
 
-//add classification based on training points
+//Add classification image "classified" based on training points
 Map.addLayer(classified, 
              {min: 0, max: 5, palette: palette}, 'classification');
+
+//Add GRTS Sampling grids used for identifying subset of GRTS_Boundary for creating training and testing points
 Map.addLayer(GRTS_Sample, {color: '#ac8853'}, 'GRTS');
+
+//Add NPS in situ data for training
 Map.addLayer(vegetationMap, {color: '000000'}, 'Vegetation Map');
 
-
-/*
-//export image to google drive
+//Export image as .tif to Google Drive
 Export.image.toDrive({
   image: classified,
   description: 'Classified_2005',
   scale: 30,
   region: parkBoundary
-});*/
+});
 
-
-//Calculate the area in hectares within each GRTS Sampling Grid
+//Calculate the area in hectares within each GRTS Sampling grid
 var area = classified.eq([0, 1, 2, 3, 4, 5]).multiply(ee.Image.pixelArea()).divide(10000);
 var reducer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Sample,
   scale: 30,
-  geometry: GRTS_Sample
+  maxPixels: 50000000,
 });
-print ('Sampled Grid Area (ha)', reducer);
+print ('Sampled Grid Area (ha)', reducer); //print area to console
 
 //Calculate the area within the mangrove buffer region
 var reducerBuffer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Boundary,
   scale: 30,
-  geometry: GRTS_Boundary
+  maxPixels: 50000000,
 });
-print ('Total Area (ha)', reducerBuffer);
-
+print ('Total Area (ha)', reducerBuffer); //print area to console
 
 
 //********************************************************Year 2010********************************************************
-
-//add a random number column to geometry imports, use seed (1, 2, and 3)
-var newfc2 = newfc.randomColumn('random', 2);
-
-//Call the masked image in the Assets
+//Import the 'Landsat2010' image from your Assets and call it "imageMasked"
+//Call "imageMasked" as "masked"
 var masked = imageMasked;
 
-//define your classification samples to incl. newfc2 and the properties to be considered
+//Add a random number column to geometry imports, use seed (1, 2, and 3). This will be used to separate data into testing and training points.
+var newfc2 = newfc.randomColumn('random', 2);
+
+//Define your classification samples to include newfc2 and the properties to be considered (landcover class type and the random number column)
 var samples = masked.sampleRegions({
   collection: newfc2,   
   properties: ['landcover', 'random'], 
   scale: 30 });
 
-//split training points (90% and 10%)  
+//Split "samples" into testing and training points (90% for training, 10% for testing)
 var training2010 = samples.filterMetadata('random', 'less_than', 0.9);
 var testing2010 = samples.filterMetadata('random', 'not_less_than', 0.9);
 
-//only use the 90% for classification
+//Only use the 90% of points for training classifier
 var classifier = ee.Classifier.randomForest(100).train({
  features: training2010, 
   classProperty: 'landcover'});
 
-//apply classifier
+//Apply classifier to "masked" image
 var classified = masked.classify(classifier);
 
-//to validate, compare 10% testing points to the classification product in errorMatrix
+//To validate, compare 10% of points reserved for testing to the classification product in errorMatrix
 var validation2010 = testing2010.classify(classifier);                                     
 var errorMatrix2010 = validation2010.errorMatrix('landcover', 'classification');           
 print('Error Matrix:', errorMatrix2010);
 print('Overall Accuracy:', errorMatrix2010.accuracy());
 print('Kappa Coefficient 2010: ', errorMatrix2010.kappa());
 
-
-//set location and zoom level
+//The following shows instructions on how to view the classification image
+//Set location and zoom level
 Map.setCenter(-80.67012, 25.15795, 10); 
 
 //Display either satellite image OR classified layer to reduce loading time. Can also add the GRTS sample grid and vegetation map for creating training points
-//image_masked is used to classify, classified is the image produced from the training points
+//"imageMasked" is used to classify, "classified" is the image produced from the training points
 //Add satellite image map
 Map.addLayer(masked, {bands: ['B5_median', 'B4_median', 'B3_median'], max: 0.3}, 'masked image');
 
+//Creates variable "palette" that lists color selections for landcover types
 var palette = ['000000', //Water - Black
                '4d9221', //Mangrove Forest - dark green
                '61380B', //Freshwater Marsh - brown
@@ -552,42 +553,43 @@ var palette = ['000000', //Water - Black
                'b2182b', //Bare Ground_Developed - Red
               ];
 
-//add classification based on training points
+//Add classification image "classified" based on training points
 Map.addLayer(classified, 
              {min: 0, max: 5, palette: palette}, 'classification');
+
+//Add GRTS Sampling grids used for identifying subset of GRTS_Boundary for creating training and testing points
 Map.addLayer(GRTS_Sample, {color: '#ac8853'}, 'GRTS');
+
+//Add NPS in situ data for training
 Map.addLayer(vegetationMap, {color: '000000'}, 'Vegetation Map');
 
 
-/*
-//export image to google drive
+//Export image to Google Drive as .tif
 Export.image.toDrive({
   image: classified,
   description: 'Classified_2010',
   scale: 30,
   region: parkBoundary
-});*/
-
+});
 
 //Calculate the area in hectares within each GRTS Sampling Grid
 var area = classified.eq([0, 1, 2, 3, 4, 5]).multiply(ee.Image.pixelArea()).divide(10000);
 var reducer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Sample,
   scale: 30,
-  geometry: GRTS_Sample
+  maxPixels: 50000000,
 });
-print ('Sampled Grid Area (ha)', reducer);
+print ('Sampled Grid Area (ha)', reducer); //print area to console
 
 //Calculate the area within the mangrove buffer region
 var reducerBuffer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Boundary,
   scale: 30,
-  geometry: GRTS_Boundary
+  maxPixels: 50000000,
 });
-print ('Total Area (ha)', reducerBuffer);
-
+print ('Total Area (ha)', reducerBuffer); //print area to console
 
 
 //********************************************************Year 2015********************************************************
