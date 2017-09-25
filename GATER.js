@@ -162,6 +162,27 @@ Export.image.toAsset({
   region: parkBoundary
 });
 
+//Cloud filtering for Year 2016 starts here
+//Filter collection to specific date range and area of interest (YEAR 2016)
+var collection16 = ee.ImageCollection(landsat8)
+    .filterDate('2016-01-01', '2016-05-30')               //define time frame
+    .map(applyMask);                                      //apply mask
+
+//As all the pixels had data in the image collection, we did not include data from the previous year. 
+
+//reduce cloud cover and clip to region
+var merged16 = collection16.reduce(ee.Reducer.median())
+      .clip(parkBoundary);
+
+// Export the image as an Asset.
+Export.image.toAsset({
+  image: merged16,
+  description: 'Landsat_2016',
+  assetID: 'Landsat2016',
+  scale: 30,
+  region: parkBoundary
+});
+
 
 //************************************************Cloud Mask for Sentinel-2********************************************************
 //Cloud filtering for Year 2016 starts here (using Sentinel-2 MSI data)
