@@ -202,20 +202,25 @@ Export.image.toAsset({
 });
 
 
-//********************************************************Classification Codes - *All Classification codes use the following standard 
-imports, geometry features, and assests. The masked image is collected from the assets that was exported from the FMask code show above. 
-Training samples are modified for each year, but the code is the same.*********************************************************
+//********************************************************Classification Codes***************************************************** 
+//All Classification codes use the following standard imports, geometry features, and assets. 
+//The masked image is collected from the assets that were exported from the FMask code show above. 
+//Training and testing samples are modified for each year, but the code is the same.
+//Note: you can use our training and testing samples, or you can create your own.
 
-//import park boundary and GRTS random sampling gridfrom fusion table (shapeFiles)
+//Import Everglades National Park boundary and GRTS random sampling grid from fusion table (or use your own shapefiles of interest)
+//GRTS_Boundary refers to entire GRTS sampling regions, and GRTS_Sample refers to subsample used to identify training and testing points.
 var parkBoundary = ee.FeatureCollection('ft:1KAYShQzYibOCQkxscbvvdNEq0JINOcYLy9wOLIF1','geometry');
 var GRTS_Sample = ee.FeatureCollection('ft:1vmcnhrotb2Q_BEzMzsFQUyrl7B6Z7jMH21DYVeCS','geometry');
 var GRTS_Boundary = ee.FeatureCollection('ft:1ezj-PlbayKFcCQB5I2ZO0O3iEONKRZwhQh8xaSCL', 'geometry');
 
-//These geometries are located in the 'imports' section of the GEE Code Editor
-//merge all geometry imports for classification
+//Import training and testing samples or create your own geometries now. We used seven classes: Water, Mangrove Forest, Freshwater Marsh, Saltwater Marsh, Shrub/Scrub, Bare Ground/Developed, and Sawgrass Prairie.
+//To use our samples, find the appropriate year's geometries at this link: https://github.com/NASA-DEVELOP/GATER/blob/master/README.md
+
+//Merge all geometry imports for classification into variable "newfc" for "new feature collection"
 var newfc = Water.merge(MangroveForest).merge(SaltWaterMarsh).merge(Shrub_Scrub).merge(FreshWaterMarsh).merge(BareGround_Developed).merge(SawGrassPrairie);
 
-//Create a dictionary explaining the class meanings  
+//Create a dictionary explaining the class meanings. Note: as the classifier did not differentiate between saltwater marsh and sawgrass prairie we combined those two classes.
 var classes = [
   {'landcover':0, 'description':'Water'},
   {'landcover':1,'description':'Mangrove Forest'},
@@ -225,7 +230,7 @@ var classes = [
   {'landcover':5,'description':'Bare Ground/Developed'},
   {'landcover':3,'description':'Sawgrass Prairie'}
 ];
-print('Class Descriptions', classes);
+print('Class Descriptions', classes); //prints classes to console for reference
 
 
 //********************************************************Year 1995********************************************************
