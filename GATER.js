@@ -389,7 +389,7 @@ Map.addLayer(vegetationMap, {color: '000000'}, 'Vegetation Map');
 //Export image as .tif to Google Drive
 Export.image.toDrive({
   image: classified,
-  description: 'Classified_2005',
+  description: 'Classified_2000',
   scale: 30,
   region: parkBoundary
 });
@@ -402,7 +402,7 @@ var reducer = area.reduceRegion({
   scale: 30,
   maxPixels: 50000000,
 });
-print ('Sampled Grid Area (ha)', reducer);
+print ('Sampled Grid Area (ha)', reducer); //print area to console
 
 //Calculate the area within the mangrove buffer region
 var reducerBuffer = area.reduceRegion({
@@ -411,7 +411,7 @@ var reducerBuffer = area.reduceRegion({
   scale: 30,
   maxPixels: 50000000,
 });
-print ('Total Area (ha)', reducerBuffer);
+print ('Total Area (ha)', reducerBuffer); //print area to console
 
 
 //********************************************************Year 2005********************************************************
