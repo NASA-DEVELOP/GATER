@@ -141,59 +141,65 @@ Export.image.toAsset({
   region: parkBoundary
 });
 
-//reduce a collection to an image---YEAR2015
+//Cloud filtering for Year 2015 starts here
+//Filter collection to specific date range and area of interest (YEAR 2015)
 var collection15 = ee.ImageCollection(landsat8)
     .filterDate('2015-01-01', '2015-05-30')               //define time frame
     .map(applyMask);                                      //apply mask
 
-//reduce cloud cover and clip to region
+//As all the pixels had data in the image collection, we did not include data from the previous year. 
+
+//Reduce image collection to single image by applying median function and clip to study region.
 var merged15 = collection15.reduce(ee.Reducer.median())
       .clip(parkBoundary);
-// Export the image to Cloud Storage as an Asset.
-Export.image.toCloudStorage({
+
+//Export the image as an Asset.
+Export.image.toAsset({
   image: merged15,
-  description: 'Year 2015',
-  fileNamePrefix: '2015',
+  description: 'Landsat2015',
+  assetId: 'Landsat2015',
   scale: 30,
   region: parkBoundary
 });
 
 
 //************************************************Cloud Mask for Sentinel-2********************************************************
-//import park boundary from fusion table (shapeFiles)
+//Cloud filtering for Year 2016 starts here (using Sentinel-2 MSI data)
+//Import Everglades National Park boundary to filter image collection (or other shapefile of interest via fusion tables)
 var parkBoundary = ee.FeatureCollection('ft:1KAYShQzYibOCQkxscbvvdNEq0JINOcYLy9wOLIF1','geometry');
 
-//set location and zoom level
+//Set location and zoom level
 Map.setCenter(-80.67012, 25.15795, 10);
 var S2_BANDS = ['B1','B2','B3','B4', 'B5', 'B6','B7','B8', 'B8A',  'B11', 'B12'];
 var STD_NAMES = ['aerosols','blue','green','red','red_edge1','red_edge2','red_edge3', 'nir','red_edge4', 'swir1', 'swir2'];
 
+//Create cloudMask function to filter Sentinel-2 imagery based on quality information.
 function cloudMask(im) {
   // Opaque and cirrus cloud masks cause bits 10 and 11 in QA60 to be set, so values less than 1024 are cloud-free
   var mask = ee.Image(0).where(im.select('QA60').gte(1024), 1).not();
   return im.updateMask(mask);
-}
+};
 
+//Filter image collection by date range and cloudMask function
 var c = ee.ImageCollection('COPERNICUS/S2')
 	.filterDate('2016-01-01', '2016-05-30')
 	.map(cloudMask);
-//Aggregate each scene using the 15th percentile
+
+//Reduce image collection to single image using the 15th percentile.
 var reducer = c.reduce(ee.Reducer.percentile([15]))
 	.clip(parkBoundary);
 
-//Add masked image using the selected bands and the min/max parameters
+//Add masked image to map using the selected bands and the min/max parameters
 Map.addLayer(reducer.select(11,7,2), {min:0, max:3000});
 
-// Export the image to Cloud Storage as an Asset.
-Export.image.toCloudStorage({
+//Export the image as an Asset.
+Export.image.toAsset({
   image: reducer,
-  description: 'Year 2016',
-  fileNamePrefix: '2016',
+  description: 'Sentinel2016',
+  assetId: 'Sentinel2016',
   scale: 20,
   region: parkBoundary
 });
-
-
 
 
 //********************************************************Classification Codes - *All Classification codes use the following standard 
