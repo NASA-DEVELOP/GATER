@@ -705,6 +705,16 @@ print ('Total Area (ha)', reducerBuffer); //print area to console
 //Import the 'Sentinel2016' image from your Assets and call it "sentinel2a"
 //Import the 'Landsat2016' image from your Assets and call it "landsat8"
 
+//import park boundary and GRTS random sampling gridfrom fusion table (shapeFiles)
+var parkBoundary = ee.FeatureCollection('ft:1KAYShQzYibOCQkxscbvvdNEq0JINOcYLy9wOLIF1','geometry');
+var GRTS_Sample = ee.FeatureCollection('ft:1vmcnhrotb2Q_BEzMzsFQUyrl7B6Z7jMH21DYVeCS','geometry');
+var GRTS_Boundary = ee.FeatureCollection('ft:1ezj-PlbayKFcCQB5I2ZO0O3iEONKRZwhQh8xaSCL', 'geometry');
+var vegetationMap = ee.FeatureCollection('ft:10urKW28wrH68eQWTVazh8O6LxnR-UatXiadet8iT');
+
+//These geometries are located in the 'imports' section of the GEE Code Editor
+//merge all geometry imports for classification
+var newfc = Water.merge(MangroveForest).merge(SaltWaterMarsh).merge(Shrub_Scrub).merge(FreshWaterMarsh).merge(BareGround_Developed).merge(SawGrassPrairie);
+
 //Add a random number column to geometry imports, use seed (1, 2, and 3). This will be used to separate data into testing and training points.
 var newfc2 = newfc.randomColumn('random', 2);
 
