@@ -702,36 +702,39 @@ print ('Total Area (ha)', reducerBuffer); //print area to console
 
 
 //********************************************************Year 2016********************************************************
+//Import the 'Sentinel2016' image from your Assets and call it "sentinel2a"
+//Import the 'Landsat2016' image from your Assets and call it "landsat8"
 
-//add a random number column to geometry imports, use seed (1, 2, and 3)
+//Add a random number column to geometry imports, use seed (1, 2, and 3). This will be used to separate data into testing and training points.
 var newfc2 = newfc.randomColumn('random', 2);
 
-//Call the sentinel and landsat images from the Assets
+//Call the Sentinel-2 and Landsat images from the Assets
 var sentinel = sentinel2a;
 var landsat = landsat8;
 
-//define your classification samples to incl. newfc2 and the properties to be considered
+//Define your classification samples for Sentinel-2 to include newfc2 and the properties to be considered (landcover class type and the random number column)
 var samples = sentinel.sampleRegions({
   collection: newfc2,   
   properties: ['landcover', 'random'], 
   scale: 20 
 });
 
+//Define your classification samples for Landsat to include newfc2 and the properties to be considered (landcover class type and the random number column)
 var landsatSamples = landsat.sampleRegions({
   collection: newfc2,
   properties: ['landcover', 'random'],
   scale: 30
 })
 
-//split training points (90% and 10%) for Sentinel 
+//Split points into training and testing points (90% for training and 10% for testing) for Sentinel-2. Note: training and testing points are different for Landsat and Sentinel-2
 var sentTraining2016 = samples.filterMetadata('random', 'less_than', 0.9);
 var sentTesting2016 = samples.filterMetadata('random', 'not_less_than', 0.9);
 
-//split training points (90% and 10%) for Landsat 8
+//Split points into training and testing points (90% for training and 10% for testing) for Landsat. Note: training and testing points are different for Landsat and Sentinel-2
 var landTraining2016 = landsatSamples.filterMetadata('random', 'less_than', 0.9);
 var landTesting2016 = landsatSamples.filterMetadata('random', 'not_less_than', 0.9);
 
-//Use all samples to classify or only 90% to validate Sentinel only later on--90% == training2015
+//Use all samples to classify or only 90% to validate Sentinel-2 only later on--90% == training2015
 var sentinelClassifier = ee.Classifier.randomForest(100).train({
   features: samples, 
   classProperty: 'landcover'});
@@ -740,37 +743,37 @@ var landsatClassifier = ee.Classifier.randomForest(100).train({
   features: landTraining2016, 
   classProperty: 'landcover'});
 
-//apply classifier to borth Sentinel and Landsat 8
+//Apply respective classifier to both Sentinel-2 and Landsat 8
 var sentinelClassified = sentinel.classify(sentinelClassifier);
 var landsatClassified = landsat.classify(landsatClassifier);
 
-
-// Get a confusion matrix for the Landsat 8 OLI image by comparing 10% of the testing points to the classified image.
+//Get a confusion matrix for the Landsat 8 OLI image by comparing the 10% of testing points to the classified image.
 var validation2016 = landTesting2016.classify(landsatClassifier); 
 var testAccuracy= validation2016.errorMatrix('landcover', 'classification');
 print('Validation error matrix 2016 (Landsat 8): ', testAccuracy);
 print('Validation overall accuracy 2016 ', testAccuracy.accuracy());
 print('Kappa Coefficient 2016: ', testAccuracy.kappa());
 
-/*
-//To validate Sentinel, compare 10% testing points to the classification product in errorMatrix
+//To validate Sentinel-2, compare 10% of points reserved for testing to the classification product in errorMatrix
 var sentValidation2016 = sentTesting2016.classify(sentinelClassifier);                                     
 var errorMatrix2016 = sentValidation2016.errorMatrix('landcover', 'classification');           
-print('Error Matrix:', errorMatrix2016);
-print('Overall Accuracy:', errorMatrix2016.accuracy());
-print('Kappa Coefficient 2016: ', errorMatrix2016.kappa());*/
+print('Sentinel-2 Error Matrix:', errorMatrix2016);
+print('Sentinel-2 Overall Accuracy:', errorMatrix2016.accuracy());
+print('Sentinel-2 Kappa Coefficient 2016: ', errorMatrix2016.kappa());
 
-
-//set location and zoom level
+//The following shows instructions on how to view the classification images
+//Set location and zoom level
 Map.setCenter(-80.67012, 25.15795, 10); 
 
-
 //Display either satellite image OR classified layer to reduce loading time. Can also add the GRTS sample grid and vegetation map for creating training points
-//Add cloud-free Sentinel-2a satellite image map using false color composite
-	//Map.addLayer(sentinel, {bands: ['B11_p15', 'B8_p15', 'B4_p15'], max: 2500}, 'Sentinel image');
-//Add cloud-free landsat 8 satellite image in false color composite
-	//Map.addLayer(landsat, {bands: ['B6_median', 'B5_median', 'B4_median'], max: 0.3}, 'Landsat 8 - 2016');
+//"sentinel2a" and "landsat8" are used to classify, "sentinelClassified" and "landsatClassified" are the images produced from the training points
 
+//Add cloud-free Sentinel-2 satellite image map using false color composite
+	Map.addLayer(sentinel, {bands: ['B11_p15', 'B8_p15', 'B4_p15'], max: 2500}, 'Sentinel image');
+//Add cloud-free Landsat 8 satellite image in false color composite
+	Map.addLayer(landsat, {bands: ['B6_median', 'B5_median', 'B4_median'], max: 0.3}, 'Landsat 8 - 2016');
+
+//Creates variable "palette" that lists color selections for landcover types
 var palette = ['000000', //Water - Black
                '4d9221', //Mangrove Forest - dark green
                '61380B', //Freshwater Marsh - brown
@@ -779,44 +782,51 @@ var palette = ['000000', //Water - Black
                'b2182b', //Bare Ground_Developed - Red
               ];
 
-//add classification based on training points
+//Add classification images based on training points
 Map.addLayer(sentinelClassified, 
              {min: 0, max: 5, palette: palette}, 'Classified Sentinel');
 Map.addLayer(landsatClassified, 
              {min: 0, max: 5, palette: palette}, 'Classified Landsat');
-//Display the GRTS sampling grids
-//Map.addLayer(GRTS_Sample, {color: '#ac8853'}, 'GRTS');
-//Display the in situ data points
-//Map.addLayer(vegetationMap, {color: '000000'}, 'Vegetation Map');
 
+//Add GRTS Sampling grids used for identifying subset of GRTS_Boundary for creating training and testing points
+Map.addLayer(GRTS_Sample, {color: '#ac8853'}, 'GRTS');
 
-/*
-//export image to google drive
+//Add NPS in situ data for training
+Map.addLayer(vegetationMap, {color: '000000'}, 'Vegetation Map');
+
+//Export Sentinel-2 classified image to Google Drive as .tif
+Export.image.toDrive({
+  image: sentinelClassified,
+  description: 'Sentinel_Classified_2016',
+  scale: 20,
+  region: parkBoundary
+});
+
+//Export Landsat 8 classified image to Google Drive as .tif
 Export.image.toDrive({
   image: landsatClassified,
-  description: 'Landsat_2016',
+  description: 'Landsat_Classified_2016',
   scale: 30,
   region: parkBoundary
-});*/
+});
 
-
-//Calculate the area in hectares within each GRTS Sampling Grid for the landsat land cover map. Sentinel-2 land cover map is too large for GEE API to calculate 
-the area.
-var area = landsatClassified.eq([0, 1, 2, 3, 4, 5]).multiply(ee.Image.pixelArea()).divide(10000);
+//Calculate the area in hectares within each GRTS Sampling Grid for the Landsat classified image. Sentinel-2 classified image is too large for GEE API to calculate the area.
+var area = landsatclassified.eq([0, 1, 2, 3, 4, 5]).multiply(ee.Image.pixelArea()).divide(10000);
 var reducer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Sample,
   scale: 30,
-  geometry: GRTS_Sample
+  maxPixels: 50000000,
 });
-print ('Sampled Grid Area (ha)', reducer);
+print ('Sampled Grid Area (ha)', reducer); //print area to console
 
 //Calculate the area within the mangrove buffer region
 var reducerBuffer = area.reduceRegion({
   reducer: ee.Reducer.sum(),
-  maxPixels: 50000000,
+  geometry: GRTS_Boundary,
   scale: 30,
-  geometry: GRTS2
+  maxPixels: 50000000,
 });
-print ('Total Area (ha)', reducerBuffer);
+print ('Total Area (ha)', reducerBuffer); //print area to console
 
+//End of script
