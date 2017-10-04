@@ -236,7 +236,7 @@ var GRTS_Sample = ee.FeatureCollection('ft:1vmcnhrotb2Q_BEzMzsFQUyrl7B6Z7jMH21DY
 var GRTS_Boundary = ee.FeatureCollection('ft:1ezj-PlbayKFcCQB5I2ZO0O3iEONKRZwhQh8xaSCL', 'geometry');
 
 //Import training and testing samples or create your own geometries now. We used seven classes: Water, Mangrove Forest, Freshwater Marsh, Saltwater Marsh, Shrub/Scrub, Bare Ground/Developed, and Sawgrass Prairie.
-//To use our samples, find the appropriate year's geometries at this link: https://github.com/NASA-DEVELOP/GATER/blob/master/README.md
+//To use our samples, find the appropriate year's geometries at this link: https://github.com/NASA-DEVELOP/GATER/blob/master/GATER_Imports.js
 
 //Merge all geometry imports for classification into variable "newfc" for "new feature collection"
 var newfc = Water.merge(MangroveForest).merge(SaltWaterMarsh).merge(Shrub_Scrub).merge(FreshWaterMarsh).merge(BareGround_Developed).merge(SawGrassPrairie);
